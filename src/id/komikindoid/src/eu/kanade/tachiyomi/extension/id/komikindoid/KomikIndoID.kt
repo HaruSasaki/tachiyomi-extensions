@@ -222,6 +222,17 @@ class KomikIndoID : ParsedHttpSource() {
 
     override fun imageUrlParse(document: Document): String = throw UnsupportedOperationException("Not Used")
 
+        return GET(getImageUrl(getShowThumbnail()), headers.build())
+    }
+
+    private fun getImageUrl(originalUrl: String, quality: Int): String {
+        val url = originalUrl
+        return when (quality) {
+            LOW_QUALITY -> originalUrl
+            else -> "$url?resize=0,0"
+        }
+    }
+
     private class AuthorFilter : Filter.Text("Author")
 
     private class YearFilter : Filter.Text("Year")
