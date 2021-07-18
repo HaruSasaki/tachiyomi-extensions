@@ -5,7 +5,7 @@ ext {
     extName = 'KomikIndoID'
     pkgNameSuffix = 'id.komikindoid'
     extClass = '.KomikIndoID'
-    extVersionCode = 3
+    extVersionCode = 1
     libVersion = '1.2'
 }
 
