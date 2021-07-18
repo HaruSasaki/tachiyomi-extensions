@@ -40,7 +40,7 @@ class KomikIndoID : ParsedHttpSource() {
         val thumbsPref = androidx.preference.ListPreference(screen.context).apply {
             key = SHOW_THUMBNAIL_PREF_Title
             title = SHOW_THUMBNAIL_PREF_Title
-            entries = arrayOf("Show high quality thumbnail", "Show low quality thumbnail")
+            entries = arrayOf("Kualitas thumbnail tinggi", "Kualitas thumbnail rendah")
             entryValues = arrayOf("0", "1")
             summary = "%s"
 
@@ -127,8 +127,9 @@ class KomikIndoID : ParsedHttpSource() {
         val manga = SManga.create()
         // need authorCleaner to take "pengarang:" string to remove it from author
         val authorCleaner = document.select(".infox .spe b:contains(Pengarang)").text()
+        val ilustratorCleaner = document.select(".infox .spe b:contains(Ilustrator)").text()
         manga.author = document.select(".infox .spe span:contains(Pengarang)").text().substringAfter(authorCleaner)
-        manga.artist = manga.author
+        manga.artist = document.select(".infox .spe span:contains(Ilustrator)").text().substringAfter(ilustratorCleaner)
         val genres = mutableListOf<String>()
         infoElement.select(".infox > .genre-info > a").forEach { element ->
             val genre = element.text()
