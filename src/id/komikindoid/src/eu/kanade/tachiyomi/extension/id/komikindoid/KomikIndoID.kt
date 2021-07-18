@@ -25,6 +25,36 @@ class KomikIndoID : ParsedHttpSource() {
     override val client: OkHttpClient = network.cloudflareClient
     private val dateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.US)
 
+    companion object {
+        private const val LOW_QUALITY = 1
+
+        private const val SHOW_THUMBNAIL_PREF_Title = "Default thumbnail quality"
+        private const val SHOW_THUMBNAIL_PREF = "showThumbnailDefault"
+    }
+
+    private val preferences: SharedPreferences by lazy {
+        Injekt.get<Application>().getSharedPreferences("source_$id", 0x0000)
+    }
+
+    override fun setupPreferenceScreen(screen: androidx.preference.PreferenceScreen) {
+        val thumbsPref = androidx.preference.ListPreference(screen.context).apply {
+            key = SHOW_THUMBNAIL_PREF_Title
+            title = SHOW_THUMBNAIL_PREF_Title
+            entries = arrayOf("Show high quality thumbnail", "Show low quality thumbnail")
+            entryValues = arrayOf("0", "1")
+            summary = "%s"
+
+            setOnPreferenceChangeListener { _, newValue ->
+                val selected = newValue as String
+                val index = this.findIndexOfValue(selected)
+                preferences.edit().putInt(SHOW_THUMBNAIL_PREF, index).commit()
+            }
+        }
+        screen.addPreference(thumbsPref)
+    }
+
+    private fun getShowThumbnail(): Int = preferences.getInt(SHOW_THUMBNAIL_PREF, 1)
+
     override fun popularMangaRequest(page: Int): Request {
         return GET("$baseUrl/daftar-komik/page/$page/?order=popular", headers)
     }
