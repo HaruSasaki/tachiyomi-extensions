@@ -40,7 +40,7 @@ class KomikIndoID : ParsedHttpSource() {
         val thumbsPref = androidx.preference.ListPreference(screen.context).apply {
             key = SHOW_THUMBNAIL_PREF_Title
             title = SHOW_THUMBNAIL_PREF_Title
-            entries = arrayOf("Kualitas thumbnail tinggi", "Kualitas thumbnail rendah")
+            entries = arrayOf("Show high quality thumbnail", "Show low quality thumbnail")
             entryValues = arrayOf("0", "1")
             summary = "%s"
 
@@ -94,8 +94,8 @@ class KomikIndoID : ParsedHttpSource() {
                 is AuthorFilter -> {
                     url.addQueryParameter("author", filter.state)
                 }
-                is YearFilter -> {
-                    url.addQueryParameter("yearx", filter.state)
+                is IlustratorFilter -> {
+                    url.addQueryParameter("ilustrator", filter.state)
                 }
                 is StatusFilter -> {
                     val status = when (filter.state) {
@@ -236,7 +236,7 @@ class KomikIndoID : ParsedHttpSource() {
 
     private class AuthorFilter : Filter.Text("Author")
 
-    private class YearFilter : Filter.Text("Year")
+    private class IlustratorFilter : Filter.Text("Ilustrator")
 
     private class TypeFilter : UriPartFilter(
         "Type",
@@ -244,8 +244,7 @@ class KomikIndoID : ParsedHttpSource() {
             Pair("Default", ""),
             Pair("Manga", "Manga"),
             Pair("Manhwa", "Manhwa"),
-            Pair("Manhua", "Manhua"),
-            Pair("Comic", "Comic")
+            Pair("Manhua", "Manhua")
         )
     )
 
@@ -277,7 +276,7 @@ class KomikIndoID : ParsedHttpSource() {
         Filter.Header("NOTE: Ignored if using text search!"),
         Filter.Separator(),
         AuthorFilter(),
-        YearFilter(),
+        IlustratorFilter(),
         StatusFilter(),
         TypeFilter(),
         SortByFilter(),
