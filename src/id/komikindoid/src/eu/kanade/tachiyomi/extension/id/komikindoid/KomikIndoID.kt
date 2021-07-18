@@ -27,7 +27,6 @@ class KomikIndoID : ParsedHttpSource() {
 
     companion object {
         private const val LOW_QUALITY = 1
-
         private const val SHOW_THUMBNAIL_PREF_Title = "Default thumbnail quality"
         private const val SHOW_THUMBNAIL_PREF = "showThumbnailDefault"
     }
