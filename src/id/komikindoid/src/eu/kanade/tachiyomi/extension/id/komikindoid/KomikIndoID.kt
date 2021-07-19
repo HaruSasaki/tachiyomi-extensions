@@ -190,6 +190,22 @@ class KomikIndoID : ParsedHttpSource() {
         return pages
     }
 
+    override fun imageRequest(page: Page): Request {
+        if (page.imageUrl!!.contains("i2.wp.com")) {
+            val headers = Headers.Builder()
+            headers.apply {
+                add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3")
+            }
+            return GET(page.imageUrl!!, headers.build())
+        } else {
+            val imgHeader = Headers.Builder().apply {
+                add("User-Agent", "Mozilla/5.0 (Linux; U; Android 4.1.1; en-gb; Build/KLP) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30")
+                add("Referer", baseUrl)
+            }.build()
+            return GET(page.imageUrl!!, imgHeader)
+        }
+    }
+
     override fun imageUrlParse(document: Document): String = throw UnsupportedOperationException("Not Used")
 
     private class AuthorFilter : Filter.Text("Author")
