@@ -191,7 +191,7 @@ class KomikIndoID : ParsedHttpSource() {
     }
 
     override fun imageRequest(page: Page): Request {
-        if (page.imageUrl!!.contains("i2.wp.com")) {
+        if (page.imageUrl!!.contains("komikcdn.me")) {
             val headers = Headers.Builder()
             headers.apply {
                 add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3")
@@ -199,7 +199,7 @@ class KomikIndoID : ParsedHttpSource() {
             return GET(page.imageUrl!!, headers.build())
         } else {
             val imgHeader = Headers.Builder().apply {
-                add("User-Agent", "Mozilla/5.0 (Linux; U; Android 4.1.1; en-gb; Build/KLP) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30")
+                add("User-Agent", "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Mobile Safari/537.36")
                 add("Referer", baseUrl)
             }.build()
             return GET(page.imageUrl!!, imgHeader)
