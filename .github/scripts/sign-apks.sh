@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-shopt -s globstar nullglob extglob
 
 TOOLS="$(ls -d ${ANDROID_HOME}/build-tools/* | tail -1)"
 
