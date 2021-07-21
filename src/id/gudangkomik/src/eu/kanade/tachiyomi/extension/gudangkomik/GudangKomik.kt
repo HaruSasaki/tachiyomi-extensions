@@ -17,20 +17,20 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-class KomikIndoID : ParsedHttpSource() {
-    override val name = "KomikIndoID"
-    override val baseUrl = "https://komikindo.id"
+class GudangKomik : ParsedHttpSource() {
+    override val name = "GudangKomik"
+    override val baseUrl = "https://gudangkomik.com"
     override val lang = "id"
     override val supportsLatest = true
     override val client: OkHttpClient = network.cloudflareClient
     private val dateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.US)
 
     override fun popularMangaRequest(page: Int): Request {
-        return GET("$baseUrl/daftar-komik/page/$page/?order=popular", headers)
+        return GET("$baseUrl/list/comic/hot?$page", headers)
     }
 
     override fun latestUpdatesRequest(page: Int): Request {
-        return GET("$baseUrl/daftar-komik/page/$page/?order=update", headers)
+        return GET("$baseUrl/list/comic/terbaru?$page", headers)
     }
 
     override fun popularMangaSelector() = "div.animepost"
