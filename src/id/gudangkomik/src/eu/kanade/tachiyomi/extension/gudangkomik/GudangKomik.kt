@@ -33,63 +33,36 @@ class GudangKomik : ParsedHttpSource() {
         return GET("$baseUrl/list/comic/terbaru?$page", headers)
     }
 
-    override fun popularMangaSelector() = "div.animepost"
+    override fun popularMangaSelector() = "div.grid.grid-rows-3"
     override fun latestUpdatesSelector() = popularMangaSelector()
     override fun searchMangaSelector() = popularMangaSelector()
 
     override fun popularMangaFromElement(element: Element): SManga = searchMangaFromElement(element)
     override fun latestUpdatesFromElement(element: Element): SManga = searchMangaFromElement(element)
 
-    override fun popularMangaNextPageSelector() = "a.next.page-numbers"
+    override fun popularMangaNextPageSelector() = "a.relative.inline-flex"
     override fun latestUpdatesNextPageSelector() = popularMangaNextPageSelector()
     override fun searchMangaNextPageSelector() = popularMangaNextPageSelector()
 
     override fun searchMangaFromElement(element: Element): SManga {
         val manga = SManga.create()
-        manga.thumbnail_url = element.select("div.limit img").attr("src")
-        manga.title = element.select("div.tt h4").text()
-        element.select("div.animposx > a").first().let {
+        manga.thumbnail_url = element.select("div.row-span-2.flex.justify-center img").attr("src")
+        manga.title = element.select("div.h-44.text-left h3").text()
+        element.select("div.h-44.text-left > a").first().let {
             manga.setUrlWithoutDomain(it.attr("href"))
         }
         return manga
     }
 
-    override fun searchMangaRequest(page: Int, query: String, filters: FilterList): Request {
-        val builtUrl = if (page == 1) "$baseUrl/daftar-komik/" else "$baseUrl/daftar-komik/page/$page/?order="
+    override fun searchMangaRequest(page: Int, query: String): Request {
+        val builtUrl = if (page == 1) "$baseUrl/list/comic/search?" else "$baseUrl/list/comic/search?page=$page"
         val url = builtUrl.toHttpUrlOrNull()!!.newBuilder()
-        url.addQueryParameter("title", query)
+        url.addQueryParameter("q", query)
         url.addQueryParameter("page", page.toString())
-        filters.forEach { filter ->
-            when (filter) {
-                is AuthorFilter -> {
-                    url.addQueryParameter("author", filter.state)
-                }
-                is YearFilter -> {
-                    url.addQueryParameter("yearx", filter.state)
-                }
-                is StatusFilter -> {
-                    val status = when (filter.state) {
-                        Filter.TriState.STATE_INCLUDE -> "completed"
-                        Filter.TriState.STATE_EXCLUDE -> "ongoing"
-                        else -> ""
-                    }
-                    url.addQueryParameter("status", status)
-                }
-                is TypeFilter -> {
-                    url.addQueryParameter("type", filter.toUriPart())
-                }
-                is SortByFilter -> {
-                    url.addQueryParameter("order", filter.toUriPart())
-                }
-                is GenreListFilter -> {
-                    filter.state
-                        .filter { it.state != Filter.TriState.STATE_IGNORE }
-                        .forEach { url.addQueryParameter("genre[]", it.id) }
-                }
-            }
         }
         return GET(url.build().toString(), headers)
     }
+
     override fun mangaDetailsParse(document: Document): SManga {
         val infoElement = document.select("div.infoanime").first()
         val descElement = document.select("div.desc > .entry-content.entry-content-single").first()
@@ -207,89 +180,4 @@ class GudangKomik : ParsedHttpSource() {
     }
 
     override fun imageUrlParse(document: Document): String = throw UnsupportedOperationException("Not Used")
-
-    private class AuthorFilter : Filter.Text("Author")
-
-    private class YearFilter : Filter.Text("Year")
-
-    private class TypeFilter : UriPartFilter(
-        "Type",
-        arrayOf(
-            Pair("Default", ""),
-            Pair("Manga", "Manga"),
-            Pair("Manhwa", "Manhwa"),
-            Pair("Manhua", "Manhua"),
-            Pair("Comic", "Comic")
-        )
-    )
-
-    private class SortByFilter : UriPartFilter(
-        "Sort By",
-        arrayOf(
-            Pair("Default", ""),
-            Pair("A-Z", "title"),
-            Pair("Z-A", "titlereverse"),
-            Pair("Latest Update", "update"),
-            Pair("Latest Added", "latest"),
-            Pair("Popular", "popular")
-        )
-    )
-
-    private class StatusFilter : UriPartFilter(
-        "Status",
-        arrayOf(
-            Pair("All", ""),
-            Pair("Ongoing", "ongoing"),
-            Pair("Completed", "completed")
-        )
-    )
-
-    private class Genre(name: String, val id: String = name) : Filter.TriState(name)
-    private class GenreListFilter(genres: List<Genre>) : Filter.Group<Genre>("Genre", genres)
-
-    override fun getFilterList() = FilterList(
-        Filter.Header("NOTE: Ignored if using text search!"),
-        Filter.Separator(),
-        AuthorFilter(),
-        YearFilter(),
-        StatusFilter(),
-        TypeFilter(),
-        SortByFilter(),
-        GenreListFilter(getGenreList())
-    )
-
-    private fun getGenreList() = listOf(
-        Genre("Action", "action"),
-        Genre("Adventure", "adventure"),
-        Genre("Comedy", "comedy"),
-        Genre("Crime", "crime"),
-        Genre("Drama", "drama"),
-        Genre("Fantasy", "fantasy"),
-        Genre("Girls Love", "girls-love"),
-        Genre("Harem", "harem"),
-        Genre("Historical", "historical"),
-        Genre("Horror", "horror"),
-        Genre("Isekai", "isekai"),
-        Genre("Magical Girls", "magical-girls"),
-        Genre("Mecha", "mecha"),
-        Genre("Medical", "medical"),
-        Genre("Philosophical", "philosophical"),
-        Genre("Psychological", "psychological"),
-        Genre("Romance", "romance"),
-        Genre("Sci-Fi", "sci-fi"),
-        Genre("Shoujo Ai", "shoujo-ai"),
-        Genre("Shounen Ai", "shounen-ai"),
-        Genre("Slice of Life", "slice-of-life"),
-        Genre("Sports", "sports"),
-        Genre("Superhero", "superhero"),
-        Genre("Thriller", "thriller"),
-        Genre("Tragedy", "tragedy"),
-        Genre("Wuxia", "wuxia"),
-        Genre("Yuri", "yuri")
-    )
-
-    private open class UriPartFilter(displayName: String, val vals: Array<Pair<String, String>>) :
-        Filter.Select<String>(displayName, vals.map { it.first }.toTypedArray()) {
-        fun toUriPart() = vals[state].second
-    }
 }
