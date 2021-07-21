@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.extension.id.komikindoid
+package eu.kanade.tachiyomi.extension.id.gudangkomik
 
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.source.model.Filter
@@ -64,36 +64,28 @@ class GudangKomik : ParsedHttpSource() {
     }
 
     override fun mangaDetailsParse(document: Document): SManga {
-        val infoElement = document.select("div.infoanime").first()
-        val descElement = document.select("div.desc > .entry-content.entry-content-single").first()
-        val sepName = infoElement.select(".infox > .spe > span:nth-child(2)").last()
+        val infoElement = document.select("div.px-10.col-span-1.lg:col-span-2").first()
+        val descElement = document.select("div.px-10.col-span-1.lg:col-span-2 p").text()
+        val sepName = infoElement.select("div.px-10.col-span-1.lg:col-span-2 h1").text()
         val manga = SManga.create()
-        // need authorCleaner to take "pengarang:" string to remove it from author
-        val authorCleaner = document.select(".infox .spe b:contains(Pengarang)").text()
-        manga.author = document.select(".infox .spe span:contains(Pengarang)").text().substringAfter(authorCleaner)
-        manga.artist = manga.author
+        val manga.author = document.select("div.px-10.col-span-1.lg:col-span-2 h2").text()
+        val manga.artist = manga.author
         val genres = mutableListOf<String>()
-        infoElement.select(".infox > .genre-info > a").forEach { element ->
+        infoElement.select("div.flex.flex-wrap a").forEach { element ->
             val genre = element.text()
             genres.add(genre)
         }
         manga.genre = genres.joinToString(", ")
-        manga.status = parseStatus(infoElement.select(".infox > .spe > span:nth-child(1)").text())
+        manga.status= SManga.UNKNOWN
         manga.description = descElement.select("p").text()
-        manga.thumbnail_url = document.select(".thumb > img:nth-child(1)").attr("src")
+        manga.thumbnail_url = document.select("div.grid grid-cols-1.lg:grid-cols-4.dark:bg-gray-800.bg-white.p-2.rounded img").attr("src")
         return manga
     }
 
-    private fun parseStatus(element: String): Int = when {
-        element.toLowerCase().contains("berjalan") -> SManga.ONGOING
-        element.toLowerCase().contains("tamat") -> SManga.COMPLETED
-        else -> SManga.UNKNOWN
-    }
-
-    override fun chapterListSelector() = "#chapter_list li"
+    override fun chapterListSelector() = "ul.max-h-96.overflow-auto.px-5"
 
     override fun chapterFromElement(element: Element): SChapter {
-        val urlElement = element.select(".lchx a").first()
+        val urlElement = element.select(".li a").first()
         val chapter = SChapter.create()
         chapter.setUrlWithoutDomain(urlElement.attr("href"))
         chapter.name = urlElement.text()
@@ -102,28 +94,28 @@ class GudangKomik : ParsedHttpSource() {
     }
 
     fun parseChapterDate(date: String): Long {
-        return if (date.contains("lalu")) {
+        return if (date.contains("ago")) {
             val value = date.split(' ')[0].toInt()
             when {
-                "detik" in date -> Calendar.getInstance().apply {
+                "seconds" in date -> Calendar.getInstance().apply {
                     add(Calendar.SECOND, value * -1)
                 }.timeInMillis
-                "menit" in date -> Calendar.getInstance().apply {
+                "minutes" in date -> Calendar.getInstance().apply {
                     add(Calendar.MINUTE, value * -1)
                 }.timeInMillis
-                "jam" in date -> Calendar.getInstance().apply {
+                "hours" in date -> Calendar.getInstance().apply {
                     add(Calendar.HOUR_OF_DAY, value * -1)
                 }.timeInMillis
-                "hari" in date -> Calendar.getInstance().apply {
+                "day" in date -> Calendar.getInstance().apply {
                     add(Calendar.DATE, value * -1)
                 }.timeInMillis
-                "minggu" in date -> Calendar.getInstance().apply {
+                "weeks" in date -> Calendar.getInstance().apply {
                     add(Calendar.DATE, value * 7 * -1)
                 }.timeInMillis
-                "bulan" in date -> Calendar.getInstance().apply {
+                "months" in date -> Calendar.getInstance().apply {
                     add(Calendar.MONTH, value * -1)
                 }.timeInMillis
-                "tahun" in date -> Calendar.getInstance().apply {
+                "years" in date -> Calendar.getInstance().apply {
                     add(Calendar.YEAR, value * -1)
                 }.timeInMillis
                 else -> {
@@ -153,7 +145,7 @@ class GudangKomik : ParsedHttpSource() {
     override fun pageListParse(document: Document): List<Page> {
         val pages = mutableListOf<Page>()
         var i = 0
-        document.select("div.imgch img").forEach { element ->
+        document.select("div.my-4 img").forEach { element ->
             val url = element.attr("src")
             i++
             if (url.isNotEmpty()) {
@@ -164,7 +156,7 @@ class GudangKomik : ParsedHttpSource() {
     }
 
     override fun imageRequest(page: Page): Request {
-        if (page.imageUrl!!.contains("komikcdn.me")) {
+        if (page.imageUrl!!.contains("cdn.gudangkomik.com")) {
             val headers = Headers.Builder()
             headers.apply {
                 add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3")
