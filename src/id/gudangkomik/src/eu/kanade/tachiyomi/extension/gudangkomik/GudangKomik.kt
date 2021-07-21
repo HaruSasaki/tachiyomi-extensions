@@ -65,7 +65,7 @@ class GudangKomik : ParsedHttpSource() {
 
     override fun mangaDetailsParse(document: Document): SManga {
         val infoElement = document.select("div.px-10.col-span-1.lg:col-span-2").first()
-        val descElement = document.select("div.px-10.col-span-1.lg:col-span-2 p").text()
+        val descElement = document.select("div.px-10.col-span-1.lg:col-span-2").text()
         val sepName = infoElement.select("div.px-10.col-span-1.lg:col-span-2 h1").text()
         val manga = SManga.create()
         val manga.author = document.select("div.px-10.col-span-1.lg:col-span-2 h2").text()
